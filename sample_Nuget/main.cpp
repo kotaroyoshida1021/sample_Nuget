@@ -4,6 +4,11 @@
 #define MAXPOINTS 100
 GLint point[MAXPOINTS][2];
 int pointnum = 0;
+GLfloat light0pos[] = { 0.0, 3.0, 5.0, 1.0 };
+GLfloat light1pos[] = { 5.0, 3.0, 0.0, 1.0 };
+GLfloat green[] = { 0.0, 1.0, 0.0, 1.0 };
+GLfloat red[] = { 0.8, 0.2, 0.2, 1.0 };
+
 void display(void) {
 	glClear(GL_COLOR_BUFFER_BIT);
 	if (pointnum > 1) {
@@ -34,7 +39,16 @@ void display2(void) {
 }
 
 void initDisplay(void) {
-	glClearColor(0.0, 0., 1., 1.);
+	glClearColor(0.0, 0., 0., 0.5);
+	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_FRONT);
+
+	glEnable(GL_LIGHTING);
+	glEnable(GL_LIGHT0);
+	glEnable(GL_LIGHT1);
+	glLightfv(GL_LIGHT1, GL_DIFFUSE, green);
+	glLightfv(GL_LIGHT1, GL_SPECULAR, green);
 }
 
 void resize(int w, int h) {
@@ -111,21 +125,57 @@ int edge[][2] = {
   { 3, 7 }  /* ÉV (D-H) */
 };
 
+int face[][4] = {
+  { 0, 1, 2, 3 },
+  { 1, 5, 6, 2 },
+  { 5, 4, 7, 6 },
+  { 4, 0, 3, 7 },
+  { 4, 5, 1, 0 },
+  { 3, 2, 6, 7 }
+};
+
+GLdouble color[][3] = {
+  { 1.0, 0.0, 0.0 },
+  { 0.0, 1.0, 0.0 },
+  { 0.0, 0.0, 1.0 },
+  { 1.0, 1.0, 0.0 },
+  { 1.0, 0.0, 1.0 },
+  { 0.0, 1.0, 1.0 }
+};
+
+GLdouble normal[][3] = {
+  { 0.0, 0.0,-1.0 },
+  { 1.0, 0.0, 0.0 },
+  { 0.0, 0.0, 1.0 },
+  {-1.0, 0.0, 0.0 },
+  { 0.0,-1.0, 0.0 },
+  { 0.0, 1.0, 0.0 }
+};
+
+
 void display3(void) {
 	static int r = 0;
-	glClear(GL_COLOR_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glLoadIdentity();
 
 	/* éãì_à íuÇ∆éãê¸ï˚å¸ */
 	gluLookAt(3.0, 4.0, 5.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
-
+	glLightfv(GL_LIGHT0, GL_POSITION, light0pos);
+	glLightfv(GL_LIGHT1, GL_POSITION, light1pos);
 	glRotated((double)r, 0.0, 1.0, 0.0);
-	glColor3d(0., 0., 0.);
-	glBegin(GL_LINES);
-	for (int i = 0; i < 12; i++) {
-		glVertex3dv(vertex[edge[i][0]]);
-		glVertex3dv(vertex[edge[i][1]]);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, red);
+
+	glBegin(GL_QUADS);
+	for (int j = 0; j < 6; j++) {
+		glNormal3dv(normal[j]);
+		for (int i = 0; i < 4; i++) {
+			glVertex3dv(vertex[face[j][i]]);
+		}
 	}
+	//for (int i = 0; i < 12; i++) {
+	//	glVertex3dv(vertex[edge[i][0]]);
+	//	glVertex3dv(vertex[edge[i][1]]);
+	//}
 	glEnd();
 	//glFlush();
 	glutSwapBuffers();
@@ -138,7 +188,7 @@ void idle(void) {
 
 int main(int argc, char *argv[]) {
 	glutInit(&argc, argv);
-	glutInitDisplayMode(GLUT_RGBA|GLUT_DOUBLE);
+	glutInitDisplayMode(GLUT_RGBA|GLUT_DOUBLE | GLUT_DEPTH);
 	glutCreateWindow(argv[0]);
 	glutDisplayFunc(display3);
 	glutReshapeFunc(resize);
