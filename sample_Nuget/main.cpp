@@ -179,6 +179,7 @@ void display3(void) {
 	glEnd();
 	//glFlush();
 	glutSwapBuffers();
+	//r = r + 0.5;
 	if (++r >= 360) r = 0;
 }
 
